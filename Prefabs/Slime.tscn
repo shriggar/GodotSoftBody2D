@@ -4,7 +4,7 @@
 
 [sub_resource type="Curve2D" id=1]
 _data = {
-"points": PoolVector2Array(  )
+"points": PackedVector2Array(  )
 }
 
 [node name="Slime" type="Node2D"]

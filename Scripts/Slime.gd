@@ -15,10 +15,10 @@ var accumulatedDisplacements = {}
 var normals = []
 var center = Vector2(0.0, 0.0)
 var gravity = Vector2(0.0, 30.0)
-export(float) var splineLength = 12.0
-export(Curve2D) var curve
+@export var splineLength: float = 12.0
+@export var curve: Curve2D
 
-func verletIntegrate(i, delta):
+func verletIntegrate(i, _delta):
 	var temp = Vector2(blob[i])
 	blob[i] = (blob[i] + (blob[i] - blobOld[i]))
 	blobOld[i] = temp
@@ -34,7 +34,7 @@ func _ready():
 func findCentroid():
 	var x = 0.0
 	var y = 0.0
-	for i in range(points): 
+	for i in range(points):
 		x += blob[i].x
 		y += blob[i].y
 	var cent = Vector2(0.0, 0.0)
@@ -53,7 +53,7 @@ func getSpline(i):
 	var spline = lastPoint.direction_to(nextPoint) * splineLength
 	return spline
 
-func updateSprite ():
+func updateSprite():
 	var polBlob = blob + [blob[0]]
 	
 	curve.clear_points()
@@ -67,33 +67,32 @@ func updateSprite ():
 		curve.set_point_out(i, spline)
 
 
-func getCurArea ():
-	var area = 0.0
-	var j = points - 1 
+func getCurArea():
+	var my_area = 0.0
+	var j = points - 1
 	for i in range(points):
-		area += (blob[j].x + blob[i].x) * (blob[j].y - blob[i].y)
+		my_area += (blob[j].x + blob[i].x) * (blob[j].y - blob[i].y)
 		j = i
-	return abs(area / 2.0)
+	return abs(my_area / 2.0)
 
 func _draw():
 #	for i in range(points):
 #		draw_line(normals[i][0], normals[i][1], Color(255, 0, 0), 3)
-	
 	var bakedPoints = Array(curve.get_baked_points())
 	
 	var drawPoints = bakedPoints + []
 	
-	if Geometry.triangulate_polygon(drawPoints).empty():
-		drawPoints = Geometry.convex_hull_2d(bakedPoints)
+	if Geometry2D.triangulate_polygon(drawPoints).is_empty():
+		drawPoints = Geometry2D.convex_hull(bakedPoints)
 	
 	#draw_polyline(drawPoints, Color.black, 2.0, true)
 	
-	draw_polygon(drawPoints, [Color(0.0,1.0,0.0,1.0)])
+	draw_polygon(drawPoints, [Color(0.0, 1.0, 0.0, 1.0)])
 	
 #	for i in range (points):
 #		draw_line(blob[i], blob[(i + 1) % points], Color.blue, 3)
 
-func _process (delta):
+func _process(delta):
 	for i in range(points):
 		verletIntegrate(i, delta)
 		blob[i] += gravity * delta
@@ -130,18 +129,18 @@ func _process (delta):
 			if i == points - 1:
 				nextIndex = 0
 			var normal = blob[nextIndex] - blob[prevIndex]
-			normal = Vars.getVectorByLA(1, rad2deg(normal.angle()) - 90.0)
+			normal = Vars.getVectorByLA(1, rad_to_deg(normal.angle()) - 90.0)
 			normals[i][0] = blob[i]
 			normals[i][1] = blob[i] + (normal * 200.0)
 			accumulatedDisplacements[(i * 3)] += normal.x * dilationDistance
 			accumulatedDisplacements[(i * 3) + 1] += normal.y * dilationDistance
 			accumulatedDisplacements[(i * 3) + 2] += 1.0
 	
-		for i in range (points):
+		for i in range(points):
 			if (accumulatedDisplacements[(i * 3) + 2] > 0):
 				blob[i] += Vector2(accumulatedDisplacements[(i * 3)], accumulatedDisplacements[(i * 3) + 1]) / accumulatedDisplacements[(i * 3) + 2]
 	
-		for i in range (points * 3): 
+		for i in range(points * 3):
 			accumulatedDisplacements[i] = 0
 	
 		for i in range(points):
@@ -152,9 +151,10 @@ func _process (delta):
 	
 	#print(curArea)
 	updateSprite()
-	update()
+	# update()
+	queue_redraw()
 
-func resetBlob ():
+func resetBlob():
 	blob = []
 	blobOld = []
 	normals = []
@@ -166,10 +166,11 @@ func resetBlob ():
 		normals.append([])
 		normals[i].append(position + delta)
 		normals[i].append(position + delta * 1.5)
-	for i in range (points * 3): 
+	for i in range(points * 3):
 		accumulatedDisplacements[i] = 0.0
 	updateSprite()
-	update()
+	# update()
+	queue_redraw()
 
 
 # Circumfrence Slider
