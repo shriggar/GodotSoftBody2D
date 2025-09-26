@@ -12,7 +12,7 @@ var iterations = 10
 var blob = []
 var blobOld = []
 var accumulatedDisplacements = {}
-var normals = []
+# var normals = []
 var center = Vector2(0.0, 0.0)
 var gravity = Vector2(0.0, 30.0)
 @export var splineLength: float = 12.0
@@ -100,9 +100,7 @@ func _process(delta):
 	for iterate in range(iterations):
 		for i in range(points):
 			var segment = blob[i]
-			var nextIndex = i + 1
-			if i == points - 1:
-				nextIndex = 0
+			var nextIndex = 0 if i == points - 1 else i + 1
 			var nextSegment = blob[nextIndex]
 			var toNext = segment - nextSegment
 			if toNext.length() > length:
@@ -122,16 +120,13 @@ func _process(delta):
 		var dilationDistance = deltaArea / circumfrence
 	
 		for i in range(points):
-			var prevIndex = i - 1
-			if i == 0:
-				prevIndex = points - 1
-			var nextIndex = i + 1
-			if i == points - 1:
-				nextIndex = 0
+			var prevIndex = points - 1 if i == 0 else i - 1
+			var nextIndex = 0 if i == points - 1 else i + 1
+		
 			var normal = blob[nextIndex] - blob[prevIndex]
-			normal = Vars.getVectorByLA(1, rad_to_deg(normal.angle()) - 90.0)
-			normals[i][0] = blob[i]
-			normals[i][1] = blob[i] + (normal * 200.0)
+			normal = Vector2(1, 0).rotated(normal.angle() - PI * 0.5)
+			# normals[i][0] = blob[i]
+			# normals[i][1] = blob[i] + (normal * 200.0)
 			accumulatedDisplacements[(i * 3)] += normal.x * dilationDistance
 			accumulatedDisplacements[(i * 3) + 1] += normal.y * dilationDistance
 			accumulatedDisplacements[(i * 3) + 2] += 1.0
@@ -157,15 +152,16 @@ func _process(delta):
 func resetBlob():
 	blob = []
 	blobOld = []
-	normals = []
+	# normals = []
 	accumulatedDisplacements = {}
 	for i in range(points):
-		var delta = Vars.getVectorByLA(radius, (360.0 / float(points)) * i)
+		# var delta = Vars.getVectorByLA(radius, (360.0 / float(points)) * i)
+		var delta = Vector2(radius, 0).rotated((TAU / points) * i)
 		blob.append(position + delta)
 		blobOld.append(position + delta)
-		normals.append([])
-		normals[i].append(position + delta)
-		normals[i].append(position + delta * 1.5)
+		# normals.append([])
+		# normals[i].append(position + delta)
+		# normals[i].append(position + delta * 1.5)
 	for i in range(points * 3):
 		accumulatedDisplacements[i] = 0.0
 	updateSprite()
